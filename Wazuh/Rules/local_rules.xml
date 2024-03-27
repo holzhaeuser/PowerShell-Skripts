@@ -1,0 +1,89 @@
+<!-- Local rules -->
+
+<!-- Modify it at your will. -->
+<!-- Copyright (C) 2015, Wazuh Inc. -->
+
+<!-- Example -->
+
+<group name="customdetect,">
+        <rule id="100010" level="0">
+         <description>Customrule: </description>
+        </rule>
+</group>
+<group name="windows-usb-detect,">
+  <rule id="100011" level="3">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^6416$</field>
+    <match>USBSTOR\\Disk</match>
+    <options>no_full_log</options>
+    <description>USB-Stick $(win.eventdata.deviceDescription) wurde an $(win.system.computer) angeschlossen.</description>
+  </rule>
+
+  <rule id="100012" level="3">
+    <if_sid>61100</if_sid>
+    <field name="win.system.eventID">^98$</field>
+    <description>Datenträger ($(win.eventdata.driveName)) ($(win.eventdata.deviceName)) wurde erkannt und ist fehlerfrei.</description>
+    <options>no_full_log</options>
+  </rule>
+
+   <rule id="100013" level="3">
+    <if_sid>61101</if_sid>
+    <field name="win.system.eventID">^157$</field>
+    <description>Datenträger ($(win.eventdata.data)) wurde unerwartet entfernt.</description>
+    <options>no_full_log</options>
+  </rule>
+
+
+  <rule id="100014" level="3">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^6416$</field>
+    <options>no_full_log</options>
+    <description>PNP-Gerät ($(win.eventdata.deviceDescription)) wurde an $(win.eventdata.subjectUserName) angeschlossen.</description>
+  </rule>
+  <rule id="100019" level="0">
+    <if_sid>100014</if_sid>
+    <field name="win.eventdata.deviceDescription">^Generic Non-PnP Monitor|^Microsoft Remote Display Adapter|^Microsoft XPS Document Writer|^Microsoft Print to PDF|^\\\\SCHULUNG-DC\\ITA1 FS-2100DN|^\\\\SCHULUNG-DC\\ITA2 FS-2100DN|^\\\\SCHULUNG-DC\\ITA3 FS-2100DN|^\\\\SCHULUNG-DC\\ITA4 FS-2100DN|^\\\\SCHULUNG-DC\\ITA5 FS-2100DN|^\\\\SCHULUNG-DC\\ITA6 FS-2100DN|^\\\\SCHULUNG-DC\\ITA7 FS-2100DN|^\\\\SCHULUNG-DC\\ITA8 FS-2100DN</field>
+    <options>no_full_log</options>
+    <description>PNP-Gerät ($(win.eventdata.deviceDescription)) wurde an $(win.eventdata.subjectUserName) angeschlossen.</description>
+  </rule>
+</group>
+<group name="custom_eventlogin,">
+  <rule id="100015" level="3">
+    <if_sid>60106</if_sid>
+    <description>$(win.eventdata.targetUserName) hat sich an $(win.system.computer) angemeldet.</description>
+  </rule>
+  <rule id="100018" level="0">
+    <if_sid>100015</if_sid>
+    <field name="win.eventdata.targetUserName">^SYSTEM|^UMFD-3|^UMFD-4|^DWM-4|^DWM-3|^DWM-2</field>
+    <description>$(win.eventdata.targetUserName) hat sich an $(win.system.computer) angemeldet.</description>
+  </rule>
+</group>
+<group name="custom_message_login,">
+  <rule id="100016" level="2">
+    <if_sid>60122</if_sid>
+    <description>Anmeldung für $(win.eventdata.targetDomainName)\$(win.eventdata.targetUserName) fehlgeschlagen - Falscher Benutzername oder Kennwort.</description>
+    <mitre>
+      <id>T1078</id>
+      <id>T1531</id>
+    </mitre>
+    <group>authentication_failed,gdpr_IV_32.2,gdpr_IV_35.7.d,gpg13_7.1,hipaa_164.312.b,nist_800_53_AC.7,nist_800_53_AU.14,pci_dss_10.2.4,pci_dss_10.2.5,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+  <rule id="100017" level="8">
+    <if_sid>60112</if_sid>
+    <options>no_full_log</options>
+    <description>Systemüberwachungsrichtlinie ($(win.eventdata.category)) wurde geändert: $(win.eventdata.subcategory).</description>
+  </rule>
+</group>
+<group name="sysmon_detect_dns,">
+ <rule id="100020" level="12">
+    <if_sid>61650</if_sid>
+    <list field="win.eventdata.QueryName" lookup="match_key">etc/lists/web-blacklist</list>
+    <description>DNS-Anfrage $(win.eventdata.QueryName) verstößt gegen Richtlinien.</description>
+ </rule>
+  <rule id="100021" level="12">
+    <if_sid>61650</if_sid>
+    <list field="win.eventdata.QueryName" lookup="match_key">etc/lists/blocklist_extended</list>
+    <description>DNS-Anfrage $(win.eventdata.QueryName) verstößt gegen Tracking- / Malwareliste.</description>
+ </rule>
+</group>
+

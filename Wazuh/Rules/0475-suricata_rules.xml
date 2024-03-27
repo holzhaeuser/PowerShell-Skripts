@@ -1,0 +1,138 @@
+<!--
+  -  Suricata rules
+  -  Created by Wazuh, Inc.
+  -  Copyright (C) 2015, Wazuh Inc.
+  -  This program is a free software; you can redistribute it and/or modify it under the terms of GPLv2.
+-->
+
+<!-- ID: 86600 - 86699 -->
+
+<group name="ids,suricata,">
+
+    <!--
+    {"timestamp":"2016-05-02T17:46:48.515262+0000","flow_id":1234,"in_iface":"eth0","event_type":"alert","src_ip":"16.10.10.10","src_port":5555,"dest_ip":"16.10.10.11","dest_port":80,"proto":"TCP","alert":{"action":"allowed","gid":1,"signature_id":2019236,"rev":3,"signature":"ET WEB_SERVER Possible CVE-2014-6271 Attempt in HTTP Version Number","category":"Attempted Administrator Privilege Gain","severity":1},"payload":"abcde","payload_printable":"hi test","stream":0,"host":"suricata.com"}
+    -->
+    <rule id="86600" level="0">
+        <decoded_as>json</decoded_as>
+        <field name="timestamp">\.+</field>
+        <field name="event_type">\.+</field>
+        <description>Suricata messages.</description>
+        <options>no_full_log</options>
+    </rule>
+
+    <rule id="86601" level="0">
+        <if_sid>86600</if_sid>
+        <field name="event_type">^alert$</field>
+        <description>Suricata: Alert - $(alert.signature)</description>
+        <options>no_full_log</options>
+    </rule>
+
+    <rule id="86602" level="0">
+        <if_sid>86600</if_sid>
+        <field name="event_type">^http$</field>
+        <description>Suricata: HTTP.</description>
+    </rule>
+
+    <rule id="86603" level="0">
+        <if_sid>86600</if_sid>
+        <field name="event_type">^dns$</field>
+        <description>Suricata: DNS.</description>
+    </rule>
+
+    <rule id="86604" level="0">
+        <if_sid>86600</if_sid>
+        <field name="event_type">^tls$</field>
+        <description>Suricata: TLS.</description>
+    </rule>
+
+     <rule id="86605" level="4">
+        <if_sid>86604</if_sid>
+        <list field="tls.sni" lookup="match_key">etc/lists/web-blacklist</list>
+        <description>TLS: Aufruf $(tls.sni) entdeckt.</description>
+    </rule>
+
+     <rule id="86606" level="4">
+        <if_sid>86603</if_sid>
+        <field name="dns.rrtype">HTTPS</field>
+        <list field="dns.rrname" lookup="match_key">etc/lists/web-blacklist</list>
+        <description>DNS: Aufruf $(dns.rrname) entdeckt.</description>
+    </rule>
+
+    <rule id="86607" level="0">
+        <if_sid>86600</if_sid>
+        <field name="event_type">^quic$</field>
+        <description>Suricata: QUIC.</description>
+    </rule>
+
+    <rule id="86608" level="0">
+        <if_sid>86607</if_sid>
+        <field name="src_port">443</field>
+        <list field="quic.sni" lookup="match_key">etc/lists/web-blacklist</list>
+        <description>QUIC-Anfrage verstößt gegen CDB-Liste.</description>
+    </rule>
+
+    <rule id="86609" level="4">
+        <if_sid>86602</if_sid>
+        <field name="http.http_method">GET</field>
+        <list field="http.hostname" lookup="match_key">etc/lists/web-blacklist</list>
+        <description>HTTP-GET: $(http.hostname) verstößt gegen CDB-Liste.</description>
+    </rule>
+
+    <rule id="86610" level="4">
+        <if_sid>86602</if_sid>
+        <field name="http.http_method">POST</field>
+        <list field="http.hostname" lookup="match_key">etc/lists/web-blacklist</list>
+        <description>HTTP-POST: $(http.hostname) verstößt gegen CDB-Liste.</description>
+    </rule>
+    <!-- dest_ip des Domänencontroller-->
+    <rule id="86611" level="0">
+        <if_sid>86601</if_sid>
+        <field name="alert.category">Potentially Bad Traffic</field>
+        <field name="alert.signature">ET POLICY Possible Powershell .ps1 Script Use Over SMB</field>
+        <match><field name="dest_ip">^10.0.0.254$</field></match>
+        <description>Ein Skript wurde über SMB ausgeführt.</description>
+        <info type="text">Skript-GPOs werden möglicherweise als 'Bad' getagged!</info>
+    </rule>
+
+    <rule id="86612" level="4">
+        <if_sid>86601</if_sid>
+        <field name="alert.category">Potentially Bad Traffic</field>
+        <field name="alert.signature">ET DNS Query to a *.pw domain - Likely Hostile</field>
+        <description>Potenzielle *.pw Domain entdeckt.</description>
+    </rule>
+
+    <rule id="86613" level="4">
+        <if_sid>86601</if_sid>
+        <field name="alert.category">Potentially Bad Traffic</field>
+        <field name="alert.signature">ET INFO TLS Handshake Failure</field>
+        <description>TLS-Handshake fehlgeschlagen.</description>
+    </rule>
+
+    <rule id="86614" level="4">
+        <if_sid>86601</if_sid>
+        <field name="alert.category">Potentially Bad Traffic</field>
+        <field name="alert.signature">ET DNS Query for .to TLD</field>
+        <description>Potenzielle *.to Domain entdeckt.</description>
+    </rule>
+
+    <rule id="86615" level="4">
+        <if_sid>86601</if_sid>
+        <field name="alert.category">Potentially Bad Traffic</field>
+        <field name="alert.signature">ET POLICY Possible Powershell .ps1 Script Use Over SMB</field>
+        <description>Ein Skript wurde über SMB ausgeführt.</description>
+    </rule>
+
+    <rule id="86617" level="4">
+        <if_sid>86603</if_sid>
+        <field name="dns.rrtype">HTTPS</field>
+        <list field="dns.rrname" lookup="match_key">etc/lists/nsfwlist2</list>
+        <description>DNS: Aufruf einer NSFW-Seite $(dns.rrname) entdeckt.</description>
+    </rule>
+
+    <rule id="86618" level="4">
+        <if_sid>86604</if_sid>
+        <list field="tls.sni" lookup="match_key">etc/lists/nsfwlist2</list>
+        <description>TLS: Aufruf einer NSFW-Seite $(tls.sni) entdeckt.</description>
+    </rule>
+
+</group>
