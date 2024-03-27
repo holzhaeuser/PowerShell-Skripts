@@ -10,7 +10,7 @@ certutil -view -restrict "Disposition=20, RequesterName=DC02\$Rname"  | ForEach-
         #Write-Output $serialNumber | Out-File -Append serial_numbers.txt
     
     
-} # Import & Export CSV
+}
 
 foreach ($sn in (get-content -Path .\serial_numbers.txt)) {
 certutil -revoke $sn 0}
