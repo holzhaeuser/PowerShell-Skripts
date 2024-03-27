@@ -1,7 +1,0 @@
-Dism /export-image /sourceimagefile:f:/sources/install.wim /sourceindex:4 /DestinationImageFile:"C:\temp dism update"\tmp_install.wim 
-mkdir C:\_Mount
-Dism /mount-wim /wimfile:"C:\temp dism update\tmp_install.wim" /mountdir:C:\_Mount /index:1
-Dism /image:C:\_Mount /add-package /packagepath:"C:\temp dism update\windows10.0-kb5025230-x64_a73c874bf9a0f3a2c4df0b7bdeb29226c34ee9f0.msu"
-Dism /Image:"C:\_Mount" /Cleanup-Image /StartComponentCleanup /ResetBase
-Dism /unmount-wim /mountdir:c:\_Mount /commit
-rmdir /Q /S c:\_Mount
